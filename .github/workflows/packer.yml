@@ -1,0 +1,71 @@
+name: Build Vagrant Box
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+env:
+  PACKER_VERSION: "1.16.0"
+
+  SCW_REGION: "fr-par"
+  SCW_ENDPOINT: "https://s3.fr-par.scw.cloud"
+  SCW_BUCKET: "vagrant-boxes"
+
+jobs:
+  build:
+    name: Build ${{ matrix.box }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    strategy:
+      fail-fast: false
+      matrix:
+        box:
+          - ubuntu-26.04-desktop
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install QEMU
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-x86 qemu-utils
+
+      - name: Enable KVM
+        run: sudo chmod 666 /dev/kvm
+
+      - name: Setup Packer
+        uses: hashicorp/setup-packer@v3
+        with:
+          version: ${{ env.PACKER_VERSION }}
+
+      - name: Packer init
+        run: packer init boxes/${{ matrix.box }}
+
+      - name: Packer fmt
+        run: packer fmt -check -diff boxes/${{ matrix.box }}
+
+      - name: Packer validate
+        run: packer validate boxes/${{ matrix.box }}
+
+      - name: Packer build
+        env:
+          PACKER_VAR_cpus: "4"
+          PACKER_VAR_memory: "8192"
+          PACKER_GETTER_READ_TIMEOUT: "10m"
+        run: packer build -color=false boxes/${{ matrix.box }}
+
+      - name: Upload Vagrant box to Scaleway
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.SCW_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SCW_SECRET_KEY }}
+          AWS_DEFAULT_REGION: ${{ env.SCW_REGION }}
+        run: |
+          aws s3 cp \
+            "boxes/${{ matrix.box }}/builds/${{ matrix.box }}-amd64-libvirt.box" \
+            "s3://${SCW_BUCKET}/${{ matrix.box }}/${{ matrix.box }}-amd64-libvirt.box" \
+            --endpoint-url "${SCW_ENDPOINT}"
