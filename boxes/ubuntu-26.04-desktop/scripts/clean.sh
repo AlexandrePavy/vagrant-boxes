@@ -25,4 +25,10 @@ rm -f /etc/ssh/ssh_host_*
 echo "==> Cleaning cloud-init state"
 cloud-init clean --logs --seed --machine-id
 
+echo "==> Writing zeroes to free space (this could take a while)"
+dd if=/dev/zero of=/EMPTY bs=1M status=progress || true
+rm -f /EMPTY
+
+sync
+
 echo "==> Cleaning completed"

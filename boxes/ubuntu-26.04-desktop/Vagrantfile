@@ -1,0 +1,19 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "file://builds/ubuntu-26.04-desktop-amd64-libvirt.box"
+
+  config.vm.synced_folder '.', '/vagrant',
+    type: 'rsync',
+    rsync__exclude: [
+      ".vagrant/",
+      "builds/",
+    ]
+
+  config.vm.provider "libvirt" do |libvirt|
+    libvirt.cpus = 4
+    libvirt.memory = 5120
+
+    libvirt.graphics_type = "vnc"
+    libvirt.video_type = "virtio"
+    libvirt.keymap = "fr"
+  end
+end
