@@ -59,6 +59,33 @@ jobs:
           PACKER_GETTER_READ_TIMEOUT: "10m"
         run: packer build -color=false boxes/${{ matrix.box }}
 
+      - name: Generate Vagrant metadata
+        run: |
+          BOX_FILE="boxes/${{ matrix.box }}/builds/${{ matrix.box }}-amd64-libvirt.box"
+          CHECKSUM=$(sha256sum "${BOX_FILE}" | awk '{print $1}')
+
+          cat > "${{ matrix.box }}.json" <<EOF
+          {
+            "name": "AlexandrePavy/${{ matrix.box }}",
+            "description": "Ubuntu 26.04 Desktop Vagrant box",
+            "versions": [
+              {
+                "version": "$(date -u +%Y%m%d).${{ github.run_number }}",
+                "providers": [
+                  {
+                    "name": "libvirt",
+                    "url": "https://vagrant-boxes.s3.fr-par.scw.cloud/${{ matrix.box }}/${{ matrix.box }}-amd64-libvirt.box",
+                    "checksum_type": "sha256",
+                    "checksum": "${CHECKSUM}"
+                  }
+                ]
+              }
+            ]
+          }
+          EOF
+
+          cat "${{ matrix.box }}.json"
+
       - name: Upload Vagrant box to Scaleway
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.SCW_ACCESS_KEY }}
@@ -68,4 +95,10 @@ jobs:
           aws s3 cp \
             "boxes/${{ matrix.box }}/builds/${{ matrix.box }}-amd64-libvirt.box" \
             "s3://${SCW_BUCKET}/${{ matrix.box }}/${{ matrix.box }}-amd64-libvirt.box" \
+            --endpoint-url "${SCW_ENDPOINT}"
+
+          aws s3 cp \
+            "${{ matrix.box }}.json" \
+            "s3://${SCW_BUCKET}/${{ matrix.box }}.json" \
+            --content-type "application/json" \
             --endpoint-url "${SCW_ENDPOINT}"
