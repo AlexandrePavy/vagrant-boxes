@@ -25,6 +25,7 @@ jobs:
       matrix:
         box:
           - ubuntu-26.04-desktop
+          - ubuntu-26.10-desktop
 
     steps:
       - name: Checkout
@@ -67,7 +68,7 @@ jobs:
           cat > "${{ matrix.box }}.json" <<EOF
           {
             "name": "AlexandrePavy/${{ matrix.box }}",
-            "description": "Ubuntu 26.04 Desktop Vagrant box",
+            "description": "${{ matrix.box }} Vagrant box",
             "versions": [
               {
                 "version": "$(date -u +%Y%m%d).${{ github.run_number }}",
