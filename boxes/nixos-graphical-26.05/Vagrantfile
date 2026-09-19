@@ -1,0 +1,25 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "file://builds/nixos-graphical-26.05-libvirt.box"
+
+  # https://github.com/hashicorp/vagrant/pull/13758
+  config.ssh.insert_key = false
+
+  config.vm.synced_folder '.', '/vagrant',
+    type: 'rsync',
+    rsync__exclude: [
+      ".vagrant/",
+      "builds/",
+    ]
+
+  # https://github.com/hashicorp/vagrant/issues/13688
+  config.vm.allow_fstab_modification = false
+
+  config.vm.provider "libvirt" do |libvirt|
+    libvirt.cpus = 4
+    libvirt.memory = 5120
+
+    libvirt.graphics_type = "vnc"
+    libvirt.video_type = "qxl"
+    libvirt.keymap = "fr"
+  end
+end

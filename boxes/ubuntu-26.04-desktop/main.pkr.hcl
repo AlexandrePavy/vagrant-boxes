@@ -27,14 +27,14 @@ variable "memory" {
   description = "Amount of memory allocated to the build VM."
 }
 
-source "qemu" "ubuntu-desktop" {
+source "qemu" "ubuntu" {
   iso_url      = "https://releases.ubuntu.com/26.04/ubuntu-26.04-desktop-amd64.iso"
   iso_checksum = "sha256:487f87faaf547ea30e0aba4d5b53346292571256b25333a978db1692bcee9dd2"
 
   headless         = true
-  output_directory = "${path.root}/builds/ubuntu-desktop-26.04-amd64-qemu"
+  output_directory = "${path.root}/builds/ubuntu-26.04-desktop-amd64-qemu"
 
-  vm_name     = "ubuntu-desktop-26.04-amd64"
+  vm_name     = "ubuntu-26.04-desktop-amd64"
   cpus        = var.cpus
   memory      = var.memory
   accelerator = "kvm"
@@ -59,7 +59,7 @@ source "qemu" "ubuntu-desktop" {
 }
 
 build {
-  sources = ["source.qemu.ubuntu-desktop"]
+  sources = ["source.qemu.ubuntu"]
 
   provisioner "shell" {
     execute_command = "sudo env {{ .Vars }} bash '{{ .Path }}'"

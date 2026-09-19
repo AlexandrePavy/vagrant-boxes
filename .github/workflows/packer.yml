@@ -17,7 +17,7 @@ env:
 jobs:
   build:
     name: Build ${{ matrix.box }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 120
 
     strategy:
@@ -26,6 +26,10 @@ jobs:
         box:
           - ubuntu-26.04-desktop
           - ubuntu-26.10-desktop
+
+    concurrency:
+      group: ${{ github.workflow }}-${{ matrix.box }}
+      cancel-in-progress: true
 
     steps:
       - name: Checkout
@@ -58,7 +62,10 @@ jobs:
           PACKER_VAR_cpus: "4"
           PACKER_VAR_memory: "8192"
           PACKER_GETTER_READ_TIMEOUT: "10m"
-        run: packer build -color=false boxes/${{ matrix.box }}
+          TMPDIR: "${{ github.workspace }}/.tmp"
+        run: |
+          mkdir -p "$TMPDIR"
+          packer build -color=false boxes/${{ matrix.box }}
 
       - name: Generate Vagrant metadata
         run: |
