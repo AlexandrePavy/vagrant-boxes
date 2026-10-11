@@ -28,8 +28,8 @@ variable "memory" {
 }
 
 source "qemu" "ubuntu" {
-  iso_url      = "https://cdimage.ubuntu.com/ubuntu/releases/26.10/release/snapshot-4/ubuntu-26.10-snapshot4-desktop-amd64.iso"
-  iso_checksum = "sha256:881cec5e48531693274b1f3ad5bc9ae1d676e9b1bcb39c49465afc8b68954238"
+  iso_url      = "https://cdimage.ubuntu.com/ubuntu/stonking/daily-live/20261010/stonking-desktop-amd64.iso"
+  iso_checksum = "sha256:223dba784b79fe14fc5bf2351cebf66cc99126a333a34f773beedbe1be44730b"
 
   headless         = true
   output_directory = "${path.root}/builds/ubuntu-26.10-desktop-amd64-qemu"
